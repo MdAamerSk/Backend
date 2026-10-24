@@ -4,7 +4,6 @@ const upload = require('../config/multer.config');
 
 const router = express.Router();
 
-router.post("/create",upload.single('profile_pic'),create);
+router.post("/create",upload.array('images', 5),create); 
 
 module.exports = router;
-

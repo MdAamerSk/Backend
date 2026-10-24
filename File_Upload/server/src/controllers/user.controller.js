@@ -1,7 +1,6 @@
-const create = (req,res) => {
-    console.log("create user controller");
+const create = (req, res) => {
     console.log(req.body);
-    console.log(req.file);
+    console.log(req.files);
 }
 
-module.exports = {create}
+module.exports = { create }

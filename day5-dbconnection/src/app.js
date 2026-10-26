@@ -2,6 +2,9 @@
 const express = require("express");
 const connectDb = require("./config/db");
 const NotesModel = require("./models/note.model");
+const dotenv = require("dotenv")
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());

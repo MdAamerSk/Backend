@@ -1,9 +1,14 @@
 import express from "express";
 import jwt from "jsonwebtoken"
+import dotenv from "dotenv"
+import userModel from "../models/user.model.js";
+
+dotenv.config()
 
 const app = express();
 
 app.use(express.json())
+
 
 app.get("/api",(req,res) => {
     res.status(200).json({
@@ -11,17 +16,17 @@ app.get("/api",(req,res) => {
     })
 })
 
-app.post("/api/auth/register",(req,res) =>{
+app.post("/api/auth/register",async(req,res) =>{
 
     const {email,name,password} = req.body;
 
-    /* save data to db
-    */
+    const user =await userModel.create({
+        email,name,password
+    })
 
     const token = jwt.sign(
         {
-            email,name
-            // _id
+            id:user._id
         },
         "d041577bf75739da1eb105bb70eda6126bed69d7185ded8c37aa43fc8552ee12"
     )
@@ -30,7 +35,9 @@ app.post("/api/auth/register",(req,res) =>{
         message:"user creates successfully",
         data :{
            user: {
-            email,name
+            email,
+            name,
+            id:user._id
            } ,
            token
         }

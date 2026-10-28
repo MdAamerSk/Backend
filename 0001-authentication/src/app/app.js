@@ -2,6 +2,8 @@ import express from "express";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
 import userModel from "../models/user.model.js";
+import {authenticate} from '../middleware/auth.middleware.js'
+import bcrypt from "bcryptjs"
 
 dotenv.config()
 
@@ -21,14 +23,14 @@ app.post("/api/auth/register",async(req,res) =>{
     const {email,name,password} = req.body;
 
     const user =await userModel.create({
-        email,name,password
+        email,name,password: await bcrypt.hash(password,10)
     })
 
     const token = jwt.sign(
         {
             id:user._id
         },
-        "d041577bf75739da1eb105bb70eda6126bed69d7185ded8c37aa43fc8552ee12"
+        process.env.JWT_SECRET
     )
 
     res.status(201).json({
@@ -45,17 +47,44 @@ app.post("/api/auth/register",async(req,res) =>{
 
 })
 
-app.get("/api/auth/me",async (req,res) => {
+app.get("/api/auth/me",authenticate,async (req,res) => {
 
-    const authHeader = req.headers.authorization;
-    console.log(authHeader);
+console.log(req.user)
 
-    const data = jwt.decode(authHeader)
-    console.log(data);
+res.status(200).json({
+    data:{
+        user:req.user
+    }
+})
+})
 
-    const user = await userModel.findById(data.id)
-    console.log(user);
+app.post("/api/auth/login",async (req,res) => {
 
+    const {email,password} = req.body;
+
+    const user = await userModel.findOne({
+        email
+    })
+
+    const isValidPassword = bcrypt.compare(password,user.password)
+
+    if(!isValidPassword){
+        return res.status(400).json({
+            message: "invalid email or password",
+        })
+    }
+
+    const token = jwt.sign({
+        id:user._id
+    },process.env.JWT_SECRET)
+
+    res.status(200).json({
+        message:"user loggedIn successfully",
+        data: {
+            email:user.email,
+            name:user.name
+        }
+    })
 })
 
 export default app;

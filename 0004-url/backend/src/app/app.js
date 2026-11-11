@@ -29,7 +29,7 @@ app.get("/:code", async function (req, res) {
     await urlModel.findOneAndUpdate({
         shortCode: code
     }, {
-        $inc: { clicks: 1 }
+        $inc: { clicks: 1 } // $inc mongodb operator to increment the clicks field by 1
     })
 })
 

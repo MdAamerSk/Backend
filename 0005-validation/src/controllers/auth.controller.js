@@ -14,61 +14,63 @@ import userModel from "../models/user.model.js"
 export async function registerUser(req, res) {
 
     const { email, phone, password } = req.body
+    
+/* the commented code was used for manual validation previously before express-validator */
 
-    const errors = []
+    // const errors = []
 
-    if (!email) {
-        errors.push({
-            field: "email",
-            message: "Email is required"
-        })
-    }
+    // if (!email) {
+    //     errors.push({
+    //         field: "email",
+    //         message: "Email is required"
+    //     })
+    // }
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    if (email && !emailRegex.test(email)) {
-        errors.push({
-            field: "email",
-            message: "Invalid email"
-        })
-    }
+    // if (email && !emailRegex.test(email)) {
+    //     errors.push({
+    //         field: "email",
+    //         message: "Invalid email"
+    //     })
+    // }
 
-    if (!phone) {
-        errors.push({
-            field: "phone",
-            message: "Phone is required"
-        })
-    }
+    // if (!phone) {
+    //     errors.push({
+    //         field: "phone",
+    //         message: "Phone is required"
+    //     })
+    // }
 
-    const phoneRegex = /^[6-9]\d{9}$/;
+    // const phoneRegex = /^[6-9]\d{9}$/;
 
-    if (phone && !phoneRegex.test(phone)) {
-        errors.push({
-            field: "phone",
-            message: "Invalid Phone Number"
-        })
-    }
+    // if (phone && !phoneRegex.test(phone)) {
+    //     errors.push({
+    //         field: "phone",
+    //         message: "Invalid Phone Number"
+    //     })
+    // }
 
-    if (!password && password.trim() === "") {
-        errors.push({
-            field: "password",
-            message: "Password is required, received empty String"
-        })
-    }
+    // if (!password && password.trim() === "") {
+    //     errors.push({
+    //         field: "password",
+    //         message: "Password is required, received empty String"
+    //     })
+    // }
 
-    if (((password.trim()).length) < 6) {
-        errors.push({
-            field: "password",
-            message: "Password should be atleast 6 characters long"
-        })
-    }
+    // if (((password.trim()).length) < 6) {
+    //     errors.push({
+    //         field: "password",
+    //         message: "Password should be atleast 6 characters long"
+    //     })
+    // }
 
-    if (errors.length > 0) {
-        return res.status(400).json({
-            message: "Invalid data",
-            errors: errors
-        })
-    }
+    // if (errors.length > 0) {
+    //     return res.status(400).json({
+    //         message: "Invalid data",
+    //         errors: errors
+    //     })
+    // }
 
     const user = await userModel.create({
         email,

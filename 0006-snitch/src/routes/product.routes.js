@@ -1,8 +1,8 @@
 import { Router } from "express"
-import { authenticate } from "../middlewares/auth.middleware.js"
-import { createProduct } from "../controllers/product.contoller.js"
+import { authenticate,authenticateSeller } from "../middlewares/auth.middleware.js"
+import { createProduct,listAllProducts, listAllProductsToSeller, unlistProduct,listProduct } from "../controllers/product.contoller.js"
 import multer, { memoryStorage } from "multer"
-import { createProductValidator } from "../validators/product.validator.js"
+import { createProductValidator, listProductValidator, unlistProductValidator } from "../validators/product.validator.js"
 const router = Router()
 
 const upload = multer({
@@ -44,7 +44,40 @@ router.post("/",
     createProductValidator,
     createProduct)
 
-    
+/**
+ * @method GET
+ * @route /api/product
+ * @description Read all the published products from the DB
+ * @access user
+ */
+router.get("/", authenticate, listAllProducts)
+
+/**
+ * @method GET
+ * @route /api/product/seller
+ * @description Read all the products from the DB
+ * @access seller
+ */
+
+router.get("/seller",authenticate,authenticateSeller,listAllProductsToSeller)
+
+/**
+ * @method PATCH
+ * @route /api/products/unlist/:id
+ * @description Unlist a product by its ID
+ * @access seller
+ */
+
+router.patch("/unlist/:id",authenticate,authenticateSeller,unlistProductValidator,unlistProduct)
+
+/**
+ * @method PATCH
+ * @route /api/products/unlist/:id
+ * @description list a product by its ID
+ * @access seller
+ */
+
+router.patch("/unlist/:id", authenticate, authenticateSeller, listProductValidator, listProduct)
 
 export default router
 

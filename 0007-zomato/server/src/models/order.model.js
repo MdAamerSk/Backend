@@ -15,7 +15,7 @@ const orderItemSchema = new mongoose.Schema(
 const orderSchema = new mongoose.Schema(
   {
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant", required: true,},
+    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant", required: true, index:true },
     items: {
       type: [orderItemSchema],
       validate: {

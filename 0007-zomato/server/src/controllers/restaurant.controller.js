@@ -3,7 +3,7 @@ const MenuItem = require("../models/menuItem.model");
 const getPagination = require("../utils/pagination");
 const findOwnedRestaurant = require("../utils/ownership");
 const Order = require("../models/order.model");
-const mongoose  = require("mongoose");
+const mongoose = require("mongoose");
 
 
 // Turns lng/lat from the request body into a GeoJSON point (or null if invalid)
@@ -112,15 +112,15 @@ async function deleteRestaurant(req, res) {
 
 //GET /api/restaurants/:id/revenue (owner, own restaurant only)
 
-async function getRestaurantRevenue(req,res) {
-  
+async function getRestaurantRevenue(req, res) {
+
   const id = req.params.id;
   //below to and from code is genrated by copilot
   const to = req.query.to ? new Date(req.query.to) : new Date();
-  const from = req.query.from 
-  ? new Date(req.query.from) 
-  : new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
-  from.setUTCHours(0,0,0,0);
+  const from = req.query.from
+    ? new Date(req.query.from)
+    : new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
+  from.setUTCHours(0, 0, 0, 0);
   to.setUTCHours(23, 59, 59, 999);
 
   /**
@@ -153,59 +153,120 @@ async function getRestaurantRevenue(req,res) {
  */
 
   const response = await Order.aggregate([
-  {
-    '$match': {
-      'restaurant': new mongoose.Types.ObjectId(id), 
-      'status': 'delivered', 
-      'createdAt': {
-        '$gte': from,
-        '$lte':to
-      }
-    }
-  }, {
-    '$group': {
-      '_id': {
-        '$dateToString': {
-          'format': '%Y-%m-%d', 
-          'date': '$createdAt',
-           'timezone': "UTC"
+    {
+      '$match': {
+        'restaurant': new mongoose.Types.ObjectId(id),
+        'status': 'delivered',
+        'createdAt': {
+          '$gte': from,
+          '$lte': to
         }
-      }, 
-      'revenue': {
-        '$sum': '$totalAmount'
+      }
+    }, {
+      '$group': {
+        '_id': {
+          '$dateToString': {
+            'format': '%Y-%m-%d',
+            'date': '$createdAt',
+            'timezone': "UTC"
+          }
+        },
+        'revenue': {
+          '$sum': '$totalAmount'
+        }
+      }
+    }, {
+      '$sort': {
+        '_id': 1
+      }
+    }, {
+      '$project': {
+        'data': '$_id',
+        'revenue': 1,
+        '_id': 0
+      }
+    }, {
+      '$group': {
+        '_id': null,
+        'totalRevenue': {
+          '$sum': '$revenue'
+        },
+        'days': {
+          '$push': '$$ROOT'
+        }
       }
     }
-  }, {
-    '$sort': {
-      '_id': 1
-    }
-  }, {
-    '$project': {
-      'data': '$_id', 
-      'revenue': 1, 
-      '_id': 0
-    }
-  }, {
-    '$group': {
-      '_id': null, 
-      'totalRevenue': {
-        '$sum': '$revenue'
-      }, 
-      'days': {
-        '$push': '$$ROOT'
-      }
-    }
-  }
-])
+  ])
 
-  const revenue = response.length > 0 ? response[ 0 ] : { totalRevenue:0, days: [] };
+  const revenue = response.length > 0 ? response[0] : { totalRevenue: 0, days: [] };
 
   res.json({
     message: "Revenue details",
     revenue: revenue.totalRevenue,
     from: from.toISOString(),
     to: to.toISOString(),
-    days:revenue.days
+    days: revenue.days
+  })
+
+}
+
+//GET /restaurants/:id/top-customers
+async function getTopCustomers(req, res) {
+
+  const { id } = req.params
+
+  const response = await Order.aggregate([
+  {
+    '$match': {
+      'restaurant': new mongoose.Types.ObjectId(id), 
+      'status': 'delivered'
+    }
+  }, {
+    '$group': {
+      '_id': '$customer', 
+      'totalRevenue': {
+        '$sum': '$totalAmount'
+      }, 
+      'totalOrder': {
+        '$sum': 1
+      }, 
+      'avgOrderValue': {
+        '$avg': '$totalAmount'
+      }
+    }
+  }, {
+    '$sort': {
+      'totalRevenue': -1
+    }
+  }, {
+    '$limit': 7
+  }, {
+    '$lookup': {
+      'from': 'users', 
+      'localField': '_id', 
+      'foreignField': '_id', 
+      'as': 'user', 
+      'pipeline': [
+        {
+          '$project': {
+            'name': 1, 
+            'email': 1, 
+            '_id': 0
+          }
+        }
+      ]
+    }
+  }, {
+    '$unwind': {
+      'path': '$user', 
+      'preserveNullAndEmptyArrays': true
+    }
+  }
+])
+
+  return res.json({
+    message: "Top customers retrieved successfully",
+    topCustomers: response
   })
 
 }
@@ -216,5 +277,6 @@ module.exports = {
   createRestaurant,
   updateRestaurant,
   deleteRestaurant,
-  getRestaurantRevenue
+  getRestaurantRevenue,
+  getTopCustomers
 };
